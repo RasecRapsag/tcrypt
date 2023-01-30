@@ -4,7 +4,6 @@ Project progress, new features, and updates to be implemented.
 
 ### Todo
 
-- [ ] Create tool structure (initial classes)
 - [ ] Create unit test structure for the features
 - [ ] Create the script that displays options on the command line
 - [ ] Create feature to display the tool version
@@ -22,4 +21,4 @@ Project progress, new features, and updates to be implemented.
 
 ### Done ✓
 
-- [x] 
+- [x] Create tool structure (initial classes)

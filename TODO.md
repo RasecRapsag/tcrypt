@@ -4,8 +4,6 @@ Project progress, new features, and updates to be implemented.
 
 ### Todo
 
-- [ ] Create the script that displays options on the command line
-- [ ] Create feature to display the tool version
 - [ ] Create feature to startup a truecrypt container (rrapsag/truecrypt)
 - [ ] Create feature to validate if the truecrypt container is running
 - [ ] Create feature to stop the truecrypt container
@@ -22,3 +20,5 @@ Project progress, new features, and updates to be implemented.
 
 - [x] Create tool structure (initial classes)
 - [x] Create unit test structure for the features
+- [x] Create the script that displays options on the command line
+- [x] Create feature to display the tool version

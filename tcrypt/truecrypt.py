@@ -8,22 +8,8 @@ class Truecrypt:
         self.error = None
         self.__initialize(name)
 
-    def __str__(self) -> str:
-        if self.container:
-            return f'Truecrypt: {self.status}\n'\
-                f'Container: \n'\
-                f'\tId: {list(self.container.values())[0]}\n'\
-                f'\tImage: {list(self.container.values())[1]}\n'\
-                f'\tCommand: {list(self.container.values())[2]}\n'\
-                f'\tCreated: {list(self.container.values())[3]}\n'\
-                f'\tStatus: {list(self.container.values())[4]}\n'\
-                f'\tPorts: {list(self.container.values())[5]}\n'\
-                f'\tName: {list(self.container.values())[6]}\n'
-        return f'Truecrypt: {self.status}'
-
     def start(self) -> bool:
         pass
-
     def stop(self) -> bool:
         pass
     def mount(self) -> bool:
@@ -34,7 +20,8 @@ class Truecrypt:
         pass
 
     def __initialize(self, name) -> None:
-        output = self.__check_docker(name)
+        self.container = {'name': name}
+        output = self.__check_docker()
         self.__get_container_info(output)
 
     def __exec_command(self, cmd) -> str:
@@ -47,9 +34,9 @@ class Truecrypt:
         output, error = execute.communicate()
         return output.decode('utf-8'), error.decode('utf-8')
 
-    def __check_docker(self, name) -> None:
+    def __check_docker(self) -> None:
         output, error = self.__exec_command(
-            f'docker container ls | grep {name}'
+            f"docker container ls | grep {self.container['name']}"
         )
         if 'command not found' in error:
             self.error = 'you need to install docker'
@@ -63,28 +50,20 @@ class Truecrypt:
         return None
 
     def __container_parser(self, data) -> dict:
-        if len(data) == 6:
-            return {
-                'id': data[0],
-                'image': data[1].strip().split(':')[0],
-                'command': data[2].strip().strip('"'),
-                'created': data[3],
-                'status': data[4],
-                'ports': '',
-                'name': data[5].strip()
-            }
-        elif len(data) == 7:
-            return {
-                'id': data[0],
-                'image': data[1].strip().split(':')[0],
-                'command': data[2].strip().strip('"'),
-                'created': data[3],
-                'status': data[4],
-                'ports': data[5],
-                'name': data[6].stip()
-            }
-        else:
-            return False
+        container = {
+            'id': data[0],
+            'image': data[1].strip().split(':')[0],
+            'command': data[2].strip().strip('"'),
+            'created': data[3].strip(),
+            'status': data[4].strip()
+        }
+        if len(data) > 5 and container['image'] == 'rrapsag/truecrypt':
+            if len(data) == 6:
+                container.update({'ports': '', 'name': data[5].strip()})
+            elif len(data) == 7:
+                container.update({'ports': data[5].strip(), 'name': data[6].strip()})
+            return container
+        return {}
 
     def __get_container_info(self, data) -> None:
         if data:
@@ -93,4 +72,18 @@ class Truecrypt:
                 self.status = True
                 self.container = container
             else:
+                self.container = None
                 self.error = 'container truecrypt is not working'
+
+    def __str__(self) -> str:
+        if self.container:
+            return f'Truecrypt: {self.status}\n'\
+                f'Container: \n'\
+                f'\tId: {list(self.container.values())[0]}\n'\
+                f'\tImage: {list(self.container.values())[1]}\n'\
+                f'\tCommand: {list(self.container.values())[2]}\n'\
+                f'\tCreated: {list(self.container.values())[3]}\n'\
+                f'\tStatus: {list(self.container.values())[4]}\n'\
+                f'\tPorts: {list(self.container.values())[5]}\n'\
+                f'\tName: {list(self.container.values())[6]}\n'
+        return f'Truecrypt: {self.status}\nError: {self.error}'

@@ -8,8 +8,20 @@ class Truecrypt:
         self.error = None
         self.__initialize(name)
 
-    def start(self) -> bool:
-        pass
+    def start(self, volume) -> bool:
+        if not self.status:
+            cmd = f"docker run -d --privileged --rm --name {self.container['name']} "\
+                  f'-v {volume}:/crypt rrapsag/truecrypt'
+            output, error = self.__exec_command(cmd)
+            if error:
+                self.status = False
+                self.container = output
+                self.error = self.__extract_error(error)
+            else:
+                self.__initialize(self.container['name'])
+                return True
+        return False
+
     def stop(self) -> bool:
         pass
     def mount(self) -> bool:
@@ -36,14 +48,17 @@ class Truecrypt:
 
     def __check_docker(self) -> None:
         output, error = self.__exec_command(
-            f"docker container ls | grep {self.container['name']}"
+            f"docker container ls -a | grep {self.container['name']}"
         )
         if 'command not found' in error:
             self.error = 'you need to install docker'
-        elif not output and not error:
-            self.error = 'truecrypt container not found'
         elif 'permission denied' in error.lower():
             self.error = 'user have no permission to connect to the docker'
+        elif 'Exited (' in output:
+            self.container = None
+            self.error = 'container name "tcrypt" is already in use'
+        elif not output and not error:
+            self.error = 'truecrypt container not found'
         else:
             output = output.split('\n', maxsplit=1)[0].split('  ')
             return [field for field in output if field.strip() != '']
@@ -57,7 +72,9 @@ class Truecrypt:
             'created': data[3].strip(),
             'status': data[4].strip()
         }
-        if len(data) > 5 and container['image'] == 'rrapsag/truecrypt':
+        if container['image'] != 'rrapsag/truecrypt':
+            self.error = 'container truecrypt is not running from valid image'
+        elif len(data) > 5:
             if len(data) == 6:
                 container.update({'ports': '', 'name': data[5].strip()})
             elif len(data) == 7:
@@ -71,9 +88,19 @@ class Truecrypt:
             if container:
                 self.status = True
                 self.container = container
+            elif self.error is not None:
+                self.container = None
             else:
                 self.container = None
                 self.error = 'container truecrypt is not working'
+
+    def __extract_error(self, error) -> str:
+        error = error.split(':')
+        words = ('not found')
+        for err in error:
+            for word in words:
+                if word in err.lower():
+                    return err.strip().lower().split('\n')[0].replace('.', '').replace('\'', '')
 
     def __str__(self) -> str:
         if self.container:

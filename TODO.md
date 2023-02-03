@@ -12,7 +12,7 @@ Project progress, new features, and updates to be implemented.
 
 ### In Progress
 
-- [ ] Create feature to startup a truecrypt container (rrapsag/truecrypt)
+- [ ]
 
 ### Done ✓
 
@@ -21,3 +21,4 @@ Project progress, new features, and updates to be implemented.
 - [x] Create the script that displays options on the command line
 - [x] Create feature to display the tool version
 - [x] Create feature to validate if the truecrypt container is running
+- [x] Create feature to startup a truecrypt container (rrapsag/truecrypt)

@@ -1,5 +1,5 @@
 import pytest
-from tcrypt import TCrypt
+from tcrypt.tcrypt import TCrypt
 
 
 def test_tcrypt_without_option(capsys):

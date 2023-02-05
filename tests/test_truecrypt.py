@@ -113,13 +113,26 @@ def test_truecrypt_container_start_unable_find_image(mock_subprocess):
     assert 'unable to find image' in true.error
 
 @patch('subprocess.Popen')
-def test_truecrypt_container_start_ok(mock_subprocess):
+def test_truecrypt_container_has_already_been_started(mock_subprocess):
     output = b'6a1caa751e0e   rrapsag/truecrypt  "/entrypoint.sh"'\
              b'  54 minutes ago  Up 54 minutes  tcrypt\n'
     mock_subprocess.return_value = process_mock(output, b'')
     true = Truecrypt()
     true.start('/mnt')
+    assert not true.status
+    assert 'truecrypt container has already been started' in true.error
+
+class FakeTruecrypt:
+
+    @patch('subprocess.Popen')
+    def return_truecrypt(self, mock_subprocess):
+        mock_subprocess.return_value = process_mock(b'', b'')
+        return Truecrypt()
+
+@patch('subprocess.Popen')
+def test_truecrypt_container_start_ok(mock_subprocess):
+    true = FakeTruecrypt().return_truecrypt()
+    output = b'5fcd75525da5\n'
+    mock_subprocess.return_value = process_mock(output, b'')
+    true.start('/mnt')
     assert true.status and true.error is None
-    assert 'rrapsag/truecrypt' in true.container['image']
-    assert 'tcrypt' in true.container['name']
-    assert 'up' in true.container['status'].lower()

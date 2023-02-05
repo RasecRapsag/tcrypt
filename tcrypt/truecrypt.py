@@ -18,8 +18,12 @@ class Truecrypt:
                 self.container = output
                 self.error = self.__extract_error(error)
             else:
-                self.__initialize(self.container['name'])
+                self.status = True
+                self.error = None
                 return True
+        else:
+            self.status = False
+            self.error = 'truecrypt container has already been started'
         return False
 
     def stop(self) -> bool:
@@ -103,7 +107,7 @@ class Truecrypt:
                     return err.strip().lower().split('\n')[0].replace('.', '').replace('\'', '')
 
     def __str__(self) -> str:
-        if self.container:
+        if self.container and len(self.container) > 1:
             return f'Truecrypt: {self.status}\n'\
                 f'Container: \n'\
                 f'\tId: {list(self.container.values())[0]}\n'\

@@ -125,14 +125,38 @@ def test_truecrypt_container_has_already_been_started(mock_subprocess):
 class FakeTruecrypt:
 
     @patch('subprocess.Popen')
-    def return_truecrypt(self, mock_subprocess):
+    def return_truecrypt_not_started(self, mock_subprocess):
         mock_subprocess.return_value = process_mock(b'', b'')
+        return Truecrypt()
+
+    @patch('subprocess.Popen')
+    def return_truecrypt_started(self, mock_subprocess):
+        output = b'6a1caa751e0e   rrapsag/truecrypt  "/entrypoint.sh"'\
+                 b'  54 minutes ago  Up 54 minutes  tcrypt\n'
+        mock_subprocess.return_value = process_mock(output, b'')
         return Truecrypt()
 
 @patch('subprocess.Popen')
 def test_truecrypt_container_start_ok(mock_subprocess):
-    true = FakeTruecrypt().return_truecrypt()
+    true = FakeTruecrypt().return_truecrypt_not_started()
     output = b'5fcd75525da5\n'
     mock_subprocess.return_value = process_mock(output, b'')
-    true.start('/mnt')
-    assert true.status and true.error is None
+    ret = true.start('/mnt')
+    assert ret and true.status and true.error is None
+
+@patch('subprocess.Popen')
+def test_truecrypt_container_not_started_stop(mock_subprocess):
+    true = FakeTruecrypt().return_truecrypt_not_started()
+    output = b'6a1caa751e0e\n'
+    mock_subprocess.return_value = process_mock(output, b'')
+    ret = true.stop()
+    assert ret is False
+    assert true.status is not None
+
+@patch('subprocess.Popen')
+def test_truecrypt_container_stop_ok(mock_subprocess):
+    true = FakeTruecrypt().return_truecrypt_started()
+    output = b'6a1caa751e0e\n'
+    mock_subprocess.return_value = process_mock(output, b'')
+    ret = true.stop()
+    assert ret and true.status

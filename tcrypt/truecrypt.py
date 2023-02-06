@@ -27,7 +27,13 @@ class Truecrypt:
         return False
 
     def stop(self) -> bool:
-        pass
+        if self.status and self.container:
+            cmd = f"docker stop {self.container['id']}"
+            output, error = self.__exec_command(cmd)
+            if not error and output.strip() == self.container['id']:
+                return True
+        return False
+
     def mount(self) -> bool:
         pass
     def dismount(self) -> bool:

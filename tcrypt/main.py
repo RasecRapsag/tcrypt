@@ -14,3 +14,7 @@ if __name__ == '__main__':
         print('Stopping truecrypt container...')
         if not true.stop():
             tcrypt.error(true.error)
+    elif tcrypt.args.mount:
+        print('Mounting truecrypt volume...')
+        if not true.mount(tcrypt.args.mount):
+            tcrypt.error(true.error)

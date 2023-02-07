@@ -1,4 +1,5 @@
 import subprocess
+import getpass
 
 
 class Truecrypt:
@@ -16,7 +17,10 @@ class Truecrypt:
             if error:
                 self.status = False
                 self.container = output
-                self.error = self.__extract_error(error)
+                if 'not found' in self.__extract_error(error):
+                    self.error = 'unable to find image truecrypt'
+                else:
+                    self.error = self.__extract_error(error)
             else:
                 self.status = True
                 self.error = None
@@ -34,8 +38,23 @@ class Truecrypt:
                 return True
         return False
 
-    def mount(self) -> bool:
-        pass
+    def mount(self, file) -> bool:
+        if self.status and self.container:
+            passwd = self.__check_password()
+            if passwd:
+                cmd = f"truecrypt --mount --non-interactive "\
+                      f"--fs-options='uid=1000,gid=984,umask=000' "\
+                      f"-p {passwd} /crypt/{file} /mnt/truecrypt"
+                output, error = self.__docker_exec(cmd)
+                print(f'OUTPUT: {output}')
+                print(f'ERROR: {error}')
+                if error:
+                    self.status = False
+                    self.error = self.__extract_error(error)
+                else:
+                    return True
+        return False
+
     def dismount(self) -> bool:
         pass
     def list(self) -> bool:
@@ -106,11 +125,23 @@ class Truecrypt:
 
     def __extract_error(self, error) -> str:
         error = error.split(':')
-        words = ('not found')
+        words = ('not found', 'incorrect', 'no such', 'failed to', 'already mounted')
         for err in error:
             for word in words:
                 if word in err.lower():
                     return err.strip().lower().split('\n')[0].replace('.', '').replace('\'', '')
+
+    def __check_password(self) -> str:
+        passwd = getpass.getpass().strip()
+        if not passwd:
+            self.status = False
+            self.error = 'blank password is not allowed'
+            return False
+        return passwd
+
+    def __docker_exec(self, cmd):
+        cmd = f"docker exec {self.container['id']} {cmd}"
+        return self.__exec_command(cmd)
 
     def __str__(self) -> str:
         if self.container and len(self.container) > 1:

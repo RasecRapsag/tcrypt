@@ -1,3 +1,4 @@
+import getpass
 from unittest.mock import patch, Mock
 from tcrypt.truecrypt import Truecrypt
 
@@ -102,7 +103,7 @@ def test_truecrypt_class_print_str_ok(mock_subprocess):
 
 @patch('subprocess.Popen')
 def test_truecrypt_container_start_unable_find_image(mock_subprocess):
-    error = b"Unable to find image 'rrapsag/truecrypt1:latest' locally"\
+    error = b"Unable to find image 'rrapsag/truecrypt1:latest' locally\n"\
             b"docker: Error response from daemon: manifest for "\
             b"rrapsag/truecrypt1:latest not found: manifest unknown: "\
             b"manifest unknown.\nSee 'docker run --help'."
@@ -160,3 +161,59 @@ def test_truecrypt_container_stop_ok(mock_subprocess):
     mock_subprocess.return_value = process_mock(output, b'')
     ret = true.stop()
     assert ret and true.status
+
+def test_truecrypt_mount_password_empty(monkeypatch):
+    monkeypatch.setattr(getpass, 'getpass', lambda: '')
+    true = FakeTruecrypt().return_truecrypt_started()
+    ret = true.mount('filecrypt')
+    assert ret is False and true.status is False
+    assert 'blank password is not allowed' in true.error
+
+@patch('subprocess.Popen')
+def test_truecrypt_mount_password_wrong(mock_subprocess, monkeypatch):
+    monkeypatch.setattr(getpass, 'getpass', lambda: 'wrongpassword')
+    error = b'Error: Incorrect password or not a TrueCrypt volume.'
+    mock_subprocess.return_value = process_mock(b'', error)
+    true = FakeTruecrypt().return_truecrypt_started()
+    ret = true.mount('filecrypt')
+    assert ret is False and true.status is False
+    assert 'incorrect password' in true.error
+
+@patch('subprocess.Popen')
+def test_truecrypt_mount_file_not_found(mock_subprocess, monkeypatch):
+    monkeypatch.setattr(getpass, 'getpass', lambda: 'password')
+    error = b'Error: No such file or directory:\n/crypt/filecrypt1'
+    mock_subprocess.return_value = process_mock(b'', error)
+    true = FakeTruecrypt().return_truecrypt_started()
+    ret = true.mount('filecrypt1')
+    assert ret is False and true.status is False
+    assert 'no such file or directory' in true.error
+
+@patch('subprocess.Popen')
+def test_truecrypt_mount_point_not_found(mock_subprocess, monkeypatch):
+    monkeypatch.setattr(getpass, 'getpass', lambda: 'password')
+    error = b'Error: mount: mounting /dev/mapper/truecrypt1 '\
+            b'on /mnt/truecrypt1 failed: No such file or directory'
+    mock_subprocess.return_value = process_mock(b'', error)
+    true = FakeTruecrypt().return_truecrypt_started()
+    ret = true.mount('filecrypt')
+    assert ret is False and true.status is False
+    assert 'no such file or directory' in true.error
+
+@patch('subprocess.Popen')
+def test_truecrypt_mount_fail_to_setup_loop_device(mock_subprocess, monkeypatch):
+    monkeypatch.setattr(getpass, 'getpass', lambda: 'password')
+    error = b'Error: Failed to set up a loop device:\n/crypt/filecrypt'
+    mock_subprocess.return_value = process_mock(b'', error)
+    true = FakeTruecrypt().return_truecrypt_started()
+    ret = true.mount('filecrypt')
+    assert ret is False and true.status is False
+    assert 'failed to set up a loop device' in true.error
+
+@patch('subprocess.Popen')
+def test_truecrypt_mount_volume_success(mock_subprocess, monkeypatch):
+    monkeypatch.setattr(getpass, 'getpass', lambda: 'password')
+    mock_subprocess.return_value = process_mock(b'', b'')
+    true = FakeTruecrypt().return_truecrypt_started()
+    ret = true.mount('filecrypt')
+    assert ret and true.status and true.error is None

@@ -4,14 +4,12 @@ Project progress, new features, and updates to be implemented.
 
 ### Todo
 
-- [ ] Create feature to mount a volume
-- [ ] Create feature to unmount a volume
 - [ ] Create feature to list mounted volumes
 
 
 ### In Progress
 
-- [ ]
+- [ ] Create feature to unmount a volume
 
 ### Done ✓
 
@@ -22,3 +20,4 @@ Project progress, new features, and updates to be implemented.
 - [x] Create feature to validate if the truecrypt container is running
 - [x] Create feature to startup a truecrypt container (rrapsag/truecrypt)
 - [x] Create feature to stop the truecrypt container
+- [x] Create feature to mount a volume

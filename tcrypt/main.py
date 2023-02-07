@@ -18,3 +18,7 @@ if __name__ == '__main__':
         print('Mounting truecrypt volume...')
         if not true.mount(tcrypt.args.mount):
             tcrypt.error(true.error)
+    elif tcrypt.args.dismount:
+        print('Dismounting truecrypt volume...')
+        if not true.dismount():
+            tcrypt.error(true.error)

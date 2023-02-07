@@ -9,7 +9,7 @@ Project progress, new features, and updates to be implemented.
 
 ### In Progress
 
-- [ ] Create feature to unmount a volume
+- [ ]
 
 ### Done ✓
 
@@ -21,3 +21,4 @@ Project progress, new features, and updates to be implemented.
 - [x] Create feature to startup a truecrypt container (rrapsag/truecrypt)
 - [x] Create feature to stop the truecrypt container
 - [x] Create feature to mount a volume
+- [x] Create feature to unmount a volume

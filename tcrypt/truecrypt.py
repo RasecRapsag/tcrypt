@@ -45,9 +45,7 @@ class Truecrypt:
                 cmd = f"truecrypt --mount --non-interactive "\
                       f"--fs-options='uid=1000,gid=984,umask=000' "\
                       f"-p {passwd} /crypt/{file} /mnt/truecrypt"
-                output, error = self.__docker_exec(cmd)
-                print(f'OUTPUT: {output}')
-                print(f'ERROR: {error}')
+                __, error = self.__docker_exec(cmd)
                 if error:
                     self.status = False
                     self.error = self.__extract_error(error)
@@ -56,7 +54,15 @@ class Truecrypt:
         return False
 
     def dismount(self) -> bool:
-        pass
+        if self.status and self.container:
+            __, error = self.__docker_exec('truecrypt -d')
+            if error:
+                self.status = False
+                self.error = self.__extract_error(error)
+            else:
+                return True
+        return False
+
     def list(self) -> bool:
         pass
 
@@ -125,7 +131,10 @@ class Truecrypt:
 
     def __extract_error(self, error) -> str:
         error = error.split(':')
-        words = ('not found', 'incorrect', 'no such', 'failed to', 'already mounted')
+        words = (
+            'not found', 'incorrect', 'no such',
+            'failed to', 'already mounted', 'busy'
+        )
         for err in error:
             for word in words:
                 if word in err.lower():

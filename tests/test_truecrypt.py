@@ -217,3 +217,20 @@ def test_truecrypt_mount_volume_success(mock_subprocess, monkeypatch):
     true = FakeTruecrypt().return_truecrypt_started()
     ret = true.mount('filecrypt')
     assert ret and true.status and true.error is None
+
+@patch('subprocess.Popen')
+def test_truecrypt_dismount_resource_busy(mock_subprocess):
+    error = b'Error: device-mapper: remove ioctl on '\
+          b'truecrypt  failed: Resource busy\nCommand failed.'
+    mock_subprocess.return_value = process_mock(b'', error)
+    true = FakeTruecrypt().return_truecrypt_started()
+    ret = true.dismount()
+    assert ret is False and true.status is False
+    assert 'resource busy' in true.error
+
+@patch('subprocess.Popen')
+def test_truecrypt_dismount_volume_success(mock_subprocess):
+    mock_subprocess.return_value = process_mock(b'', b'')
+    true = FakeTruecrypt().return_truecrypt_started()
+    ret = true.dismount()
+    assert ret and true.status and true.error is None
